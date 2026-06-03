@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penca Hockey Mundial 2026 - OCC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+  :root {
+    --blue-50:#e8f0fe;--blue-100:#c5d8fc;--blue-200:#8db4f9;
+    --blue-400:#3a7bd5;--blue-600:#1a56c4;--blue-700:#1443a0;
+    --blue-800:#0d2f7a;--blue-900:#071e55;
+    --gold:#f0a500;--gold-light:#ffd166;
+    --gray-50:#f8f9fa;--gray-100:#eef0f3;--gray-200:#dde1e7;
+    --gray-400:#8d95a1;--gray-600:#4a5568;
+    --green:#1db954;--red:#e53e3e;--orange:#ed8936;
+    --bg:#f4f7ff;--card:#ffffff;--text:#1a202c;--muted:#718096;
+    --border:rgba(26,86,196,0.15);--radius:12px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .hidden{display:none!important;}
+  .loading-overlay{position:fixed;inset:0;background:rgba(7,30,85,.7);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+  .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{color:#fff;font-size:15px;font-family:'Barlow',sans-serif;}
+  .header{background:linear-gradient(135deg,var(--blue-900) 0%,var(--blue-700) 100%);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(7,30,85,.3);}
+  .header-logo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);}
+  .header-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:.5px;}
+  .header-sub{font-size:11px;color:var(--blue-200);}
+  .header-user{margin-left:auto;font-size:13px;color:var(--blue-100);display:flex;align-items:center;gap:8px;}
+  .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;}
+  .auth-screen{min-height:100vh;background:linear-gradient(160deg,var(--blue-900) 0%,var(--blue-700) 50%,var(--blue-600) 100%);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .auth-card{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(7,30,85,.4);}
+  .auth-logo-wrap{text-align:center;margin-bottom:20px;}
+  .auth-logo{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);}
+  .auth-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--blue-900);text-align:center;line-height:1.1;}
+  .auth-subtitle{font-size:13px;color:var(--muted);text-align:center;margin-top:5px;margin-bottom:24px;}
+  .tab-row{display:flex;gap:4px;background:var(--gray-100);border-radius:var(--radius-sm);padding:4px;margin-bottom:20px;}
+  .tab-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+  .tab-btn.active{background:#fff;color:var(--blue-700);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+  .form-group{margin-bottom:14px;}
+  label{font-size:13px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;}
+  input[type=text],input[type=password]{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Barlow',sans-serif;font-size:15px;color:var(--text);transition:border .2s;outline:none;}
+  input:focus{border-color:var(--blue-400);}
+  .btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--blue-700),var(--blue-600));border:none;border-radius:var(--radius-sm);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s;}
+  .btn-primary:hover{background:linear-gradient(135deg,var(--blue-800),var(--blue-700));}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+  .btn-secondary{padding:10px 20px;background:transparent;border:1.5px solid var(--blue-400);border-radius:var(--radius-sm);color:var(--blue-700);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;cursor:pointer;}
+  .error-msg{background:#fff5f5;border:1px solid #fed7d7;color:#c53030;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:12px;}
+  .success-msg{background:#f0fff4;border:1px solid #c6f6d5;color:#276749;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:12px;}
+  .lobby-screen{padding:20px 16px;max-width:600px;margin:0 auto;}
+  .lobby-title{font-size:24px;font-weight:700;color:var(--blue-900);margin-bottom:4px;}
+  .lobby-sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:14px;}
+  .card-title{font-size:16px;font-weight:700;color:var(--blue-800);margin-bottom:12px;}
+  .group-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .group-item:hover{border-color:var(--blue-400);background:var(--blue-50);}
+  .group-item-name{font-weight:600;font-size:15px;}
+  .group-item-meta{font-size:12px;color:var(--muted);}
+  .invite-code-display{background:var(--blue-900);color:var(--gold);font-family:monospace;font-size:24px;font-weight:700;text-align:center;padding:14px;border-radius:var(--radius-sm);letter-spacing:5px;margin:10px 0;}
+  .app-screen{max-width:800px;margin:0 auto;padding:0 14px 80px;}
+  .pool-header{background:linear-gradient(135deg,var(--blue-900),var(--blue-700));border-radius:var(--radius);padding:16px 20px;margin:14px 0;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+  .pool-name{font-size:22px;font-weight:700;letter-spacing:.5px;}
+  .pool-sub{font-size:13px;color:var(--blue-200);}
+  .pool-code{font-family:monospace;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:6px;font-size:16px;letter-spacing:3px;color:var(--gold-light);}
+  .nav-tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-200);overflow-x:auto;}
+  .nav-tab{flex-shrink:0;padding:10px 18px;border:none;background:transparent;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+  .nav-tab.active{color:var(--blue-700);border-bottom-color:var(--blue-700);}
+  .match-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;}
+  .match-date{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+  .match-teams{display:flex;align-items:center;gap:8px;}
+  .team-name{flex:1;font-size:15px;font-weight:600;}
+  .team-name.home{text-align:right;}
+  .team-name.away{text-align:left;}
+  .country-full{display:inline;}
+  .country-short{display:none;}
+  @media(max-width:480px){.country-full{display:none;}.country-short{display:inline;}}
+  .score-display{background:var(--blue-900);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;padding:6px 14px;border-radius:8px;min-width:64px;text-align:center;letter-spacing:2px;flex-shrink:0;}
+  .score-display.pending{background:var(--gray-200);color:var(--muted);font-size:14px;}
+  .predict-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--gray-200);flex-wrap:wrap;}
+  .predict-label{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .score-input{width:44px;padding:6px;border:1.5px solid var(--gray-200);border-radius:6px;text-align:center;font-size:16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;outline:none;}
+  .score-input:focus{border-color:var(--blue-400);}
+  .predict-vs{font-size:14px;color:var(--muted);flex-shrink:0;}
+  .predict-submit{padding:7px 14px;background:var(--blue-600);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  .predict-submit:hover{background:var(--blue-700);}
+  .edit-btn{background:var(--gray-400);}
+  .predict-submitted{font-size:12px;color:var(--green);font-weight:600;}
+  .points-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:700;display:inline-block;}
+  .pts-exact{background:#ebf8ff;color:#2b6cb0;}
+  .pts-diff{background:#f0fff4;color:#276749;}
+  .pts-winner{background:#fefcbf;color:#744210;}
+  .pts-zero{background:var(--gray-100);color:var(--muted);}
+  .leaderboard-table{width:100%;border-collapse:collapse;}
+  .leaderboard-table th{background:var(--blue-900);color:#fff;padding:10px 12px;text-align:left;font-size:13px;font-weight:600;}
+  .leaderboard-table th:last-child{text-align:right;}
+  .leaderboard-table td{padding:10px 12px;border-bottom:1px solid var(--gray-100);font-size:14px;}
+  .pts-total{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--blue-700);text-align:right;}
+  .admin-match{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;}
+  .btn-update{padding:8px 20px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-update:hover{background:#c05621;}
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-200);display:flex;z-index:100;}
+  .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:10px;gap:3px;}
+  .bnav-btn.active{color:var(--blue-700);}
+  .bnav-icon{font-size:22px;}
+  .section-heading{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;}
+  .empty-state{text-align:center;padding:36px 20px;color:var(--muted);font-size:15px;}
+  .scoring-legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+  .legend-item{background:var(--blue-50);border-radius:8px;padding:10px;text-align:center;}
+  .legend-pts{font-size:24px;font-weight:700;color:var(--blue-700);font-family:'Barlow Condensed',sans-serif;}
+  .legend-label{font-size:11px;color:var(--muted);margin-top:2px;}
+  .adj-btn{width:30px;height:30px;border:1px solid var(--gray-200);border-radius:6px;background:#fff;font-size:20px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
+  .adj-btn:hover{background:var(--blue-50);border-color:var(--blue-400);}
+  .score-val{min-width:32px;text-align:center;font-size:22px;font-weight:700;font-family:'Barlow Condensed',sans-serif;display:inline-block;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Cargando...</div>
+</div>
+
+<!-- AUTH -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo-wrap">
+      <img src="https://occstore.com.uy/wp-content/uploads/2024/03/cropped-OCCIco-1-300x300.png" class="auth-logo" alt="OCC" onerror="this.style.display='none'">
+    </div>
+    <div class="auth-title">PENCA MUNDIAL<br>HOCKEY FEMENINO 2026</div>
+    <div class="auth-subtitle">Bélgica · Países Bajos · 15–30 Agosto</div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="tab-btn" id="tabRegBtn" onclick="switchAuthTab('register')">Registrarme</button>
+    </div>
+    <div id="authError" class="error-msg hidden"></div>
+    <div id="authSuccess" class="success-msg hidden"></div>
+    <div id="loginForm">
+      <div class="form-group"><label>Usuario</label><input type="text" id="loginUser" placeholder="Tu usuario" autocomplete="username"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" placeholder="Tu contraseña" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">ENTRAR</button>
+    </div>
+    <div id="registerForm" class="hidden">
+      <div class="form-group"><label>Nombre para mostrar</label><input type="text" id="regName" placeholder="Ej: María G."></div>
+      <div class="form-group"><label>Usuario (sin espacios)</label><input type="text" id="regUser" placeholder="Ej: mariag"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" placeholder="Mínimo 4 caracteres"></div>
+      <button class="btn-primary" id="registerBtn" onclick="doRegister()">CREAR CUENTA</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="appHeader" class="header hidden">
+  <img src="https://occstore.com.uy/wp-content/uploads/2024/03/cropped-OCCIco-1-300x300.png" class="header-logo" alt="OCC" onerror="this.style.display='none'">
+  <div>
+    <div class="header-title">PENCA HOCKEY 2026</div>
+    <div class="header-sub">Mundial Femenino · Bélgica & Países Bajos</div>
+  </div>
+  <div class="header-user">
+    <span id="headerUsername"></span>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+  </div>
+</div>
+
+<div id="lobbyScreen" class="lobby-screen hidden"></div>
+
+<div id="appScreen" class="app-screen hidden">
+  <div class="pool-header">
+    <div>
+      <div class="pool-name" id="groupTitle">Mi Grupo</div>
+      <div class="pool-sub" id="groupMeta"></div>
+    </div>
+    <div style="text-align:right">
+      <div class="pool-code" id="groupCodeDisplay">---</div>
+      <div style="font-size:11px;color:var(--blue-200);margin-top:4px;">código invitación</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('matches')">Partidos</button>
+    <button class="nav-tab" onclick="showTab('leaderboard')">Tabla</button>
+    <button class="nav-tab" onclick="showTab('mygroup')">Mi Grupo</button>
+    <button class="nav-tab admin-tab hidden" onclick="showTab('admin')">⚙ Admin</button>
+  </div>
+  <div id="tab-matches"></div>
+  <div id="tab-leaderboard" class="hidden"></div>
+  <div id="tab-mygroup" class="hidden"></div>
+  <div id="tab-admin" class="hidden"></div>
+</div>
+
+<div id="bottomNav" class="bottom-nav hidden">
+  <button class="bnav-btn active" id="bnav0" onclick="showMainSection('groups')">
+    <span class="bnav-icon">🏠</span><span>Grupos</span>
+  </button>
+  <button class="bnav-btn" id="bnav1" onclick="showMainSection('app')">
+    <span class="bnav-icon">🏑</span><span>Penca</span>
+  </button>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — Railway URL se detecta automáticamente
+// ============================================================
+const API = ''; // vacío = mismo origen (Railway sirve frontend y backend juntos)
+
+const POOLS = {
+  A:{name:"Grupo A",venue:"Ámsterdam (NED)",teams:[{name:"Países Bajos",short:"NED"},{name:"Australia",short:"AUS"},{name:"Chile",short:"CHI"},{name:"Japón",short:"JPN"}]},
+  B:{name:"Grupo B",venue:"Wavre (BEL)",teams:[{name:"Argentina",short:"ARG"},{name:"Alemania",short:"GER"},{name:"Estados Unidos",short:"USA"},{name:"Escocia",short:"SCO"}]},
+  C:{name:"Grupo C",venue:"Wavre (BEL)",teams:[{name:"Bélgica",short:"BEL"},{name:"España",short:"ESP"},{name:"Nueva Zelanda",short:"NZL"},{name:"Irlanda",short:"IRL"}]},
+  D:{name:"Grupo D",venue:"Ámsterdam (NED)",teams:[{name:"China",short:"CHN"},{name:"Inglaterra",short:"ENG"},{name:"India",short:"IND"},{name:"Sudáfrica",short:"RSA"}]}
+};
+
+const MATCHES = [
+  {id:"A1",pool:"A",home:"Países Bajos",away:"Chile",date:"Vie 15 Ago",time:"17:00"},
+  {id:"A2",pool:"A",home:"Australia",away:"Japón",date:"Vie 15 Ago",time:"15:00"},
+  {id:"A3",pool:"A",home:"Países Bajos",away:"Japón",date:"Dom 17 Ago",time:"17:00"},
+  {id:"A4",pool:"A",home:"Australia",away:"Chile",date:"Dom 17 Ago",time:"15:00"},
+  {id:"A5",pool:"A",home:"Chile",away:"Japón",date:"Mar 19 Ago",time:"15:00"},
+  {id:"A6",pool:"A",home:"Países Bajos",away:"Australia",date:"Mar 19 Ago",time:"17:00"},
+  {id:"B1",pool:"B",home:"Alemania",away:"Escocia",date:"Vie 15 Ago",time:"11:00"},
+  {id:"B2",pool:"B",home:"Argentina",away:"Estados Unidos",date:"Vie 15 Ago",time:"13:00"},
+  {id:"B3",pool:"B",home:"Argentina",away:"Alemania",date:"Dom 17 Ago",time:"13:00"},
+  {id:"B4",pool:"B",home:"Estados Unidos",away:"Escocia",date:"Dom 17 Ago",time:"11:00"},
+  {id:"B5",pool:"B",home:"Argentina",away:"Escocia",date:"Mar 19 Ago",time:"07:00"},
+  {id:"B6",pool:"B",home:"Alemania",away:"Estados Unidos",date:"Mar 19 Ago",time:"11:00"},
+  {id:"C1",pool:"C",home:"Bélgica",away:"Irlanda",date:"Sáb 16 Ago",time:"11:00"},
+  {id:"C2",pool:"C",home:"España",away:"Nueva Zelanda",date:"Sáb 16 Ago",time:"13:00"},
+  {id:"C3",pool:"C",home:"Bélgica",away:"Nueva Zelanda",date:"Lun 18 Ago",time:"11:00"},
+  {id:"C4",pool:"C",home:"España",away:"Irlanda",date:"Lun 18 Ago",time:"13:00"},
+  {id:"C5",pool:"C",home:"Bélgica",away:"España",date:"Mié 20 Ago",time:"11:00"},
+  {id:"C6",pool:"C",home:"Nueva Zelanda",away:"Irlanda",date:"Mié 20 Ago",time:"13:00"},
+  {id:"D1",pool:"D",home:"Inglaterra",away:"Sudáfrica",date:"Sáb 16 Ago",time:"15:00"},
+  {id:"D2",pool:"D",home:"China",away:"India",date:"Sáb 16 Ago",time:"17:00"},
+  {id:"D3",pool:"D",home:"China",away:"Inglaterra",date:"Lun 18 Ago",time:"15:00"},
+  {id:"D4",pool:"D",home:"India",away:"Sudáfrica",date:"Lun 18 Ago",time:"17:00"},
+  {id:"D5",pool:"D",home:"China",away:"Sudáfrica",date:"Mié 20 Ago",time:"15:00"},
+  {id:"D6",pool:"D",home:"India",away:"Inglaterra",date:"Mié 20 Ago",time:"17:00"},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null; // {username, displayName, password, isAdmin}
+let currentGroupId = null;
+let currentGroupData = null;
+let cachedResults = {};
+let cachedPredictions = {};
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function apiFetch(path, options = {}) {
+  try {
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error del servidor');
+    return data;
+  } catch (e) {
+    throw e;
+  }
+}
+
+// ============================================================
+// LOADING UI
+// ============================================================
+function showLoading(msg = 'Cargando...') {
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+// ============================================================
+// AUTH MESSAGES
+// ============================================================
+function switchAuthTab(tab) {
+  document.getElementById('tabLoginBtn').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegBtn').classList.toggle('active', tab === 'register');
+  document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('authError').classList.add('hidden');
+  document.getElementById('authSuccess').classList.add('hidden');
+}
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.remove('hidden');
+  document.getElementById('authSuccess').classList.add('hidden');
+}
+function showAuthSuccess(msg) {
+  const el = document.getElementById('authSuccess');
+  el.textContent = msg; el.classList.remove('hidden');
+  document.getElementById('authError').classList.add('hidden');
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function doLogin() {
+  const username = (document.getElementById('loginUser').value || '').trim().toLowerCase();
+  const password = (document.getElementById('loginPass').value || '');
+  if (!username || !password) return showAuthError('Completá usuario y contraseña.');
+  showLoading('Entrando...');
+  document.getElementById('loginBtn').disabled = true;
+  try {
+    const data = await apiFetch('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    currentUser = { username: data.username, displayName: data.displayName, password, isAdmin: data.isAdmin };
+    enterApp();
+  } catch (e) {
+    showAuthError(e.message || 'Error al iniciar sesión.');
+  } finally {
+    hideLoading();
+    document.getElementById('loginBtn').disabled = false;
+  }
+}
+
+async function doRegister() {
+  const displayName = (document.getElementById('regName').value || '').trim();
+  const rawUser = (document.getElementById('regUser').value || '').trim();
+  const username = rawUser.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const password = (document.getElementById('regPass').value || '');
+  if (!displayName || !username || !password) return showAuthError('Completá todos los campos.');
+  if (username.length < 3) return showAuthError('El usuario debe tener al menos 3 caracteres.');
+  if (password.length < 4) return showAuthError('La contraseña debe tener al menos 4 caracteres.');
+  showLoading('Creando cuenta...');
+  document.getElementById('registerBtn').disabled = true;
+  try {
+    await apiFetch('/api/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, password, displayName })
+    });
+    showAuthSuccess('¡Cuenta creada! Ahora podés entrar con: ' + username);
+    document.getElementById('loginUser').value = username;
+    document.getElementById('loginPass').value = '';
+    switchAuthTab('login');
+  } catch (e) {
+    showAuthError(e.message || 'Error al registrarse.');
+  } finally {
+    hideLoading();
+    document.getElementById('registerBtn').disabled = false;
+  }
+}
+
+function enterApp() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appHeader').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.getElementById('headerUsername').textContent = currentUser.displayName;
+  if (currentUser.isAdmin) showAdminLobby();
+  else showLobby();
+}
+
+function doLogout() {
+  currentUser = null; currentGroupId = null; currentGroupData = null;
+  cachedResults = {}; cachedPredictions = {};
+  ['appHeader','lobbyScreen','appScreen','bottomNav'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('authError').classList.add('hidden');
+  document.getElementById('authSuccess').classList.add('hidden');
+}
+
+// ============================================================
+// ADMIN LOBBY
+// ============================================================
+async function showAdminLobby() {
+  showLoading('Cargando panel admin...');
+  const ls = document.getElementById('lobbyScreen');
+  ls.classList.remove('hidden');
+  document.getElementById('appScreen').classList.add('hidden');
+  try {
+    const [grupos, results] = await Promise.all([
+      apiFetch(`/api/admin/grupos?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`),
+      apiFetch('/api/results')
+    ]);
+    cachedResults = results;
+    ls.innerHTML = `
+      <div class="lobby-title">Panel Super Admin</div>
+      <div class="lobby-sub">Gestión global de resultados</div>
+      <div class="card">
+        <div class="card-title">📋 Grupos activos (${grupos.length})</div>
+        ${grupos.length ? grupos.map(g => `<div class="group-item" style="cursor:default;"><div><div class="group-item-name">${g.name}</div><div class="group-item-meta">${g.member_count} participante(s) · Código: <b>${g.code}</b></div></div></div>`).join('') : '<p style="color:var(--muted);font-size:14px;">No hay grupos aún.</p>'}
+      </div>
+      <div class="card">
+        <div class="card-title">⚽ Resultados oficiales</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Aplicán a TODOS los grupos del sistema.</p>
+        <div id="adminResultsPanel"></div>
+      </div>`;
+    renderAdminResults();
+  } catch(e) {
+    ls.innerHTML = `<div class="error-msg">Error: ${e.message}</div>`;
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderAdminResults() {
+  document.getElementById('adminResultsPanel').innerHTML = MATCHES.map(m => {
+    const r = cachedResults[m.id];
+    const hVal = r !== undefined ? r.home : 0;
+    const aVal = r !== undefined ? r.away : 0;
+    return `<div class="admin-match">
+      <div style="font-size:13px;font-weight:600;color:var(--blue-800);">${POOLS[m.pool].name} · ${m.date}</div>
+      <div class="match-teams" style="margin:8px 0;">
+        <span class="team-name home" style="font-size:14px;">${m.home}</span>
+        <span class="score-display ${r !== undefined ? '' : 'pending'}">${r !== undefined ? r.home + '–' + r.away : '?–?'}</span>
+        <span class="team-name away" style="font-size:14px;">${m.away}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--muted);">Resultado:</span>
+        <div style="display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:6px 10px;">
+          <button class="adj-btn" onclick="adj('h','${m.id}',-1)">−</button>
+          <span class="score-val" id="vh_${m.id}">${hVal}</span>
+          <button class="adj-btn" onclick="adj('h','${m.id}',1)">+</button>
+          <span style="font-size:18px;font-weight:700;padding:0 6px;">–</span>
+          <button class="adj-btn" onclick="adj('a','${m.id}',-1)">−</button>
+          <span class="score-val" id="va_${m.id}">${aVal}</span>
+          <button class="adj-btn" onclick="adj('a','${m.id}',1)">+</button>
+        </div>
+        <button class="btn-update" onclick="adminSave('${m.id}')">Guardar</button>
+        ${r !== undefined ? '<span style="color:var(--green);font-size:14px;font-weight:700;">✓</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adj(side, matchId, delta) {
+  const el = document.getElementById('v' + side + '_' + matchId);
+  if (!el) return;
+  el.textContent = Math.max(0, parseInt(el.textContent || 0) + delta);
+}
+
+async function adminSave(matchId) {
+  const h = parseInt(document.getElementById('vh_' + matchId).textContent);
+  const a = parseInt(document.getElementById('va_' + matchId).textContent);
+  showLoading('Guardando resultado...');
+  try {
+    await apiFetch('/api/results/' + matchId, {
+      method: 'PUT',
+      body: JSON.stringify({ username: currentUser.username, password: currentUser.password, home: h, away: a })
+    });
+    cachedResults[matchId] = { home: h, away: a };
+    renderAdminResults();
+    // Flash success
+    const btn = document.querySelector(`button[onclick="adminSave('${matchId}')"]`);
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Guardado'; setTimeout(() => btn.textContent = orig, 2000); }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// LOBBY
+// ============================================================
+async function showLobby() {
+  showLoading('Cargando grupos...');
+  const ls = document.getElementById('lobbyScreen');
+  ls.classList.remove('hidden');
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('bnav0').classList.add('active');
+  document.getElementById('bnav1').classList.remove('active');
+  try {
+    const grupos = await apiFetch(`/api/grupos?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`);
+    ls.innerHTML = `
+      <div class="lobby-title">Mis Grupos</div>
+      <div class="lobby-sub">Uní a un grupo o creá el tuyo</div>
+      ${grupos.length ? `<div class="section-heading">Mis grupos</div>${grupos.map(g => `<div class="group-item" onclick="enterGroup('${g.id}','${g.name}','${g.code}')"><div><div class="group-item-name">${g.name}</div><div class="group-item-meta">${(g.members||[]).length} participante(s)</div></div><span style="font-size:20px;color:var(--blue-400);">→</span></div>`).join('')}` : '<div class="empty-state">Aún no estás en ningún grupo.</div>'}
+      <div class="card">
+        <div class="card-title">🏒 Unirse a un grupo</div>
+        <div class="form-group"><label>Código de invitación</label><input type="text" id="joinCode" placeholder="Ej: ABC123" style="text-transform:uppercase"></div>
+        <button class="btn-primary" onclick="doJoinGroup()">UNIRSE</button>
+      </div>
+      <div class="card">
+        <div class="card-title">✨ Crear un grupo nuevo</div>
+        <div class="form-group"><label>Nombre del grupo</label><input type="text" id="newGroupName" placeholder="Ej: Penca del Club"></div>
+        <button class="btn-primary" onclick="doCreateGroup()">CREAR GRUPO</button>
+      </div>
+      <div class="scoring-legend">
+        <div class="legend-item"><div class="legend-pts">+1</div><div class="legend-label">Ganador correcto</div></div>
+        <div class="legend-item"><div class="legend-pts">+2</div><div class="legend-label">Diferencia de goles</div></div>
+        <div class="legend-item"><div class="legend-pts">+3</div><div class="legend-label">Resultado exacto</div></div>
+        <div class="legend-item"><div class="legend-pts">+3</div><div class="legend-label">Empate exacto</div></div>
+      </div>`;
+  } catch(e) {
+    ls.innerHTML = `<div class="error-msg">Error cargando grupos: ${e.message}</div>`;
+  } finally {
+    hideLoading();
+  }
+}
+
+async function doJoinGroup() {
+  const code = (document.getElementById('joinCode')?.value || '').trim().toUpperCase();
+  if (!code) return alert('Ingresá un código.');
+  showLoading('Uniéndose al grupo...');
+  try {
+    const grupo = await apiFetch('/api/grupos/join', {
+      method: 'POST',
+      body: JSON.stringify({ username: currentUser.username, password: currentUser.password, code })
+    });
+    enterGroup(grupo.id, grupo.name, grupo.code);
+  } catch(e) {
+    alert(e.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+async function doCreateGroup() {
+  const name = (document.getElementById('newGroupName')?.value || '').trim();
+  if (!name) return alert('Ingresá un nombre para el grupo.');
+  showLoading('Creando grupo...');
+  try {
+    const grupo = await apiFetch('/api/grupos', {
+      method: 'POST',
+      body: JSON.stringify({ username: currentUser.username, password: currentUser.password, name })
+    });
+    enterGroup(grupo.id, grupo.name, grupo.code);
+  } catch(e) {
+    alert(e.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// GROUP VIEW
+// ============================================================
+async function enterGroup(groupId, groupName, groupCode) {
+  currentGroupId = groupId;
+  showLoading('Cargando grupo...');
+  try {
+    const [groupData, results] = await Promise.all([
+      apiFetch(`/api/grupos/${groupId}?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`),
+      apiFetch('/api/results')
+    ]);
+    currentGroupData = groupData;
+    cachedResults = results;
+    document.getElementById('lobbyScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('groupTitle').textContent = groupData.name || groupName;
+    document.getElementById('groupMeta').textContent = `${(groupData.members||[]).length} participante(s) · ${Object.keys(results).length} resultado(s) oficial(es)`;
+    document.getElementById('groupCodeDisplay').textContent = groupData.code || groupCode;
+    const isCreator = groupData.creator === currentUser.username;
+    document.querySelectorAll('.admin-tab').forEach(el => el.classList.toggle('hidden', !isCreator));
+    document.getElementById('bnav0').classList.remove('active');
+    document.getElementById('bnav1').classList.add('active');
+    showTab('matches');
+  } catch(e) {
+    alert('Error cargando grupo: ' + e.message);
+    showLobby();
+  } finally {
+    hideLoading();
+  }
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${tab}'`));
+  });
+  ['matches','leaderboard','mygroup','admin'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'matches') renderMatches();
+  else if (tab === 'leaderboard') renderLeaderboard();
+  else if (tab === 'mygroup') renderMyGroupTab();
+  else if (tab === 'admin') renderGroupAdminTab();
+}
+
+// ============================================================
+// MATCHES
+// ============================================================
+function getShort(name) {
+  for (const p of Object.values(POOLS)) {
+    const t = p.teams.find(t => t.name === name);
+    if (t) return t.short;
+  }
+  return name.substring(0, 3).toUpperCase();
+}
+function teamHtml(name) {
+  return `<span class="country-full">${name}</span><span class="country-short">${getShort(name)}</span>`;
+}
+function calcPoints(ph, pa, rh, ra) {
+  if (ph === rh && pa === ra) return 3;
+  if ((ph - pa) === (rh - ra)) return 2;
+  const pw = ph > pa ? 'H' : ph < pa ? 'A' : 'D';
+  const rw = rh > ra ? 'H' : rh < ra ? 'A' : 'D';
+  if (pw === rw) return 1;
+  return 0;
+}
+function ptsClass(pts) {
+  if (pts >= 3) return 'pts-exact';
+  if (pts === 2) return 'pts-diff';
+  if (pts === 1) return 'pts-winner';
+  return 'pts-zero';
+}
+
+async function renderMatches() {
+  showLoading('Cargando partidos...');
+  try {
+    const [results, preds] = await Promise.all([
+      apiFetch('/api/results'),
+      apiFetch(`/api/predictions/${currentGroupId}?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`)
+    ]);
+    cachedResults = results;
+    cachedPredictions = preds;
+    const myPreds = preds[currentUser.username] || {};
+    let html = '';
+    for (const pk of ['A','B','C','D']) {
+      html += `<div class="section-heading">${POOLS[pk].name} <span style="font-size:11px;font-weight:400;color:var(--muted);">${POOLS[pk].venue}</span></div>`;
+      for (const m of MATCHES.filter(x => x.pool === pk)) {
+        const r = results[m.id];
+        const pred = myPreds[m.id];
+        const pts = (r && pred) ? calcPoints(pred.home, pred.away, r.home, r.away) : null;
+        html += `<div class="match-card">
+          <div class="match-date">${m.date} · ${m.time} (hora local)</div>
+          <div class="match-teams">
+            <span class="team-name home">${teamHtml(m.home)}</span>
+            <span class="score-display ${r ? '' : 'pending'}">${r ? r.home + '–' + r.away : '?–?'}</span>
+            <span class="team-name away">${teamHtml(m.away)}</span>
+          </div>
+          ${r && pred ? `<div style="text-align:center;margin-top:8px;"><span class="points-badge ${ptsClass(pts)}">Tu pronóstico: ${pred.home}–${pred.away} · ${pts > 0 ? '+' + pts + ' pts' : '0 pts'}</span></div>` : ''}
+          ${!r ? renderPredictForm(m, pred) : ''}
+        </div>`;
+      }
+    }
+    document.getElementById('tab-matches').innerHTML = html;
+  } catch(e) {
+    document.getElementById('tab-matches').innerHTML = `<div class="error-msg">Error cargando partidos: ${e.message}</div>`;
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderPredictForm(m, pred) {
+  if (pred) return `<div class="predict-row"><span class="predict-submitted">✓ Tu pronóstico: ${pred.home}–${pred.away}</span><button class="predict-submit edit-btn" onclick="editPred('${m.id}')">Editar</button></div>`;
+  return `<div class="predict-row">
+    <span class="predict-label">Tu pronóstico</span>
+    <input type="number" class="score-input" id="ph_${m.id}" min="0" max="20" placeholder="0" value="0">
+    <span class="predict-vs">–</span>
+    <input type="number" class="score-input" id="pa_${m.id}" min="0" max="20" placeholder="0" value="0">
+    <button class="predict-submit" onclick="submitPred('${m.id}')">Guardar</button>
+  </div>`;
+}
+
+async function editPred(matchId) {
+  showLoading('Editando pronóstico...');
+  try {
+    await apiFetch(`/api/predictions/${currentGroupId}/${matchId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ username: currentUser.username, password: currentUser.password })
+    });
+    await renderMatches();
+  } catch(e) {
+    alert(e.message);
+    hideLoading();
+  }
+}
+
+async function submitPred(matchId) {
+  const h = parseInt(document.getElementById('ph_' + matchId)?.value);
+  const a = parseInt(document.getElementById('pa_' + matchId)?.value);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return alert('Ingresá goles válidos.');
+  showLoading('Guardando pronóstico...');
+  try {
+    await apiFetch(`/api/predictions/${currentGroupId}/${matchId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ username: currentUser.username, password: currentUser.password, home: h, away: a })
+    });
+    await renderMatches();
+  } catch(e) {
+    alert(e.message);
+    hideLoading();
+  }
+}
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+async function renderLeaderboard() {
+  showLoading('Calculando tabla...');
+  try {
+    const scores = await apiFetch(`/api/leaderboard/${currentGroupId}?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`);
+    const medals = ['🥇','🥈','🥉'];
+    let html = `<div style="margin-top:14px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
+      <table class="leaderboard-table">
+        <thead><tr><th>#</th><th>Jugador</th><th>Pronóst.</th><th>Puntos</th></tr></thead>
+        <tbody>`;
+    scores.forEach((s, i) => {
+      const isMe = s.username === currentUser.username;
+      html += `<tr style="${isMe ? 'background:var(--blue-50);font-weight:600;' : ''}">
+        <td>${medals[i] || i + 1}</td>
+        <td>${s.displayName}${isMe ? ' <span style="font-size:11px;color:var(--blue-600);">(vos)</span>' : ''}</td>
+        <td style="color:var(--muted)">${s.played}</td>
+        <td class="pts-total">${s.total}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    document.getElementById('tab-leaderboard').innerHTML = html;
+  } catch(e) {
+    document.getElementById('tab-leaderboard').innerHTML = `<div class="error-msg">Error: ${e.message}</div>`;
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// MY GROUP
+// ============================================================
+async function renderMyGroupTab() {
+  const group = currentGroupData;
+  if (!group) return;
+  const members = (group.members || []).map(m => {
+    const name = m.display_name || m.username || m;
+    const uname = m.username || m;
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:14px;display:flex;justify-content:space-between;align-items:center;">
+      <span>${name}</span>
+      ${uname === group.creator ? '<span style="font-size:11px;color:var(--blue-600);background:var(--blue-50);padding:2px 8px;border-radius:20px;">Admin</span>' : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('tab-mygroup').innerHTML = `
+    <div style="margin-top:14px;">
+      <div class="card">
+        <div class="card-title">Código de invitación</div>
+        <div class="invite-code-display">${group.code}</div>
+        <p style="font-size:13px;color:var(--muted);text-align:center;">Compartí este código con tus compañeros.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Participantes (${(group.members || []).length})</div>
+        ${members}
+      </div>
+      <div class="card">
+        <div class="card-title">Sistema de puntos</div>
+        <div class="scoring-legend">
+          <div class="legend-item"><div class="legend-pts">+3</div><div class="legend-label">Resultado exacto</div></div>
+          <div class="legend-item"><div class="legend-pts">+3</div><div class="legend-label">Empate exacto</div></div>
+          <div class="legend-item"><div class="legend-pts">+2</div><div class="legend-label">Diferencia de goles</div></div>
+          <div class="legend-item"><div class="legend-pts">+1</div><div class="legend-label">Ganador correcto</div></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;padding-bottom:20px;">
+        <button class="btn-secondary" onclick="showLobby()">← Volver a mis grupos</button>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// GROUP ADMIN TAB (creador del grupo — ver pronósticos)
+// ============================================================
+async function renderGroupAdminTab() {
+  showLoading('Cargando pronósticos...');
+  try {
+    const [results, preds] = await Promise.all([
+      apiFetch('/api/results'),
+      apiFetch(`/api/predictions/${currentGroupId}?username=${currentUser.username}&password=${encodeURIComponent(currentUser.password)}`)
+    ]);
+    const members = currentGroupData?.members || [];
+    let html = `<div style="background:#fff8f0;border:2px solid var(--orange);border-radius:var(--radius);padding:18px;margin-top:14px;">
+      <div style="font-size:16px;font-weight:700;color:#c05621;margin-bottom:12px;">🔒 Vista de administrador</div>
+      <p style="font-size:13px;color:#c05621;margin-bottom:14px;">Ves los pronósticos de todos. Los resultados oficiales solo los carga el Super Admin.</p>`;
+    for (const m of MATCHES) {
+      const result = results[m.id];
+      const predsForMatch = members.map(mem => {
+        const uname = mem.username || mem;
+        const name = mem.display_name || uname;
+        const pred = preds[uname]?.[m.id];
+        return pred ? { name, pred } : null;
+      }).filter(Boolean);
+      html += `<div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;">
+        <b>${m.home} vs ${m.away}</b> <span style="font-size:12px;color:var(--muted);">· ${m.date}</span>
+        ${result ? `<span style="color:var(--green);font-size:13px;"> · Oficial: ${result.home}–${result.away}</span>` : ''}
+        <div style="margin-top:8px;">
+          ${!predsForMatch.length ? '<span style="font-size:13px;color:var(--muted);">Sin pronósticos aún</span>' :
+            predsForMatch.map(p => {
+              const pts = result ? calcPoints(p.pred.home, p.pred.away, result.home, result.away) : null;
+              return `<div style="font-size:13px;padding:3px 0;display:flex;align-items:center;gap:8px;">
+                <span>${p.name}: <b>${p.pred.home}–${p.pred.away}</b></span>
+                ${pts !== null ? `<span class="points-badge ${ptsClass(pts)}">${pts > 0 ? '+' + pts + ' pts' : '0 pts'}</span>` : ''}
+              </div>`;
+            }).join('')}
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    document.getElementById('tab-admin').innerHTML = html;
+  } catch(e) {
+    document.getElementById('tab-admin').innerHTML = `<div class="error-msg">Error: ${e.message}</div>`;
+  } finally {
+    hideLoading();
+  }
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function showMainSection(section) {
+  document.getElementById('bnav0').classList.toggle('active', section === 'groups');
+  document.getElementById('bnav1').classList.toggle('active', section === 'app');
+  if (section === 'groups') showLobby();
+  else if (section === 'app' && currentGroupId) {
+    document.getElementById('lobbyScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+  }
+}
+</script>
+</body>
+</html>
