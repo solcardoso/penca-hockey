@@ -531,15 +531,6 @@ function UserApp({user, onLogout, showToast}) {
   // ── MI GRUPO ──
   function renderGrupo() {
     return <>
-      <div style={S.cardB}>
-        <div style={S.h3}>🔑 Código de invitación</div>
-        <div style={{background:C.hdr,color:C.goldHi,fontFamily:"monospace",
-          fontSize:"1.8rem",fontWeight:700,textAlign:"center",
-          padding:"14px",borderRadius:8,letterSpacing:6,marginBottom:8}}>
-          {THE_GROUP.code}
-        </div>
-        <p style={{...S.gray,textAlign:"center"}}>Compartí este código para que se anoten.</p>
-      </div>
       <div style={S.card}>
         <div style={S.h3}>👥 Participantes ({(members||[]).length})</div>
         {(members||[]).map(m=>(
